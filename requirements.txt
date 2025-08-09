@@ -1,0 +1,12 @@
+streamlit
+openai-whisper
+transformers
+torch
+ffmpeg-python
+plotly
+wordcloud
+pandas
+scikit-learn
+nltk
+reportlab
+python-docx
