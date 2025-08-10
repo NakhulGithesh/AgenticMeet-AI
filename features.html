@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgenticMeet AI - Features</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            padding: 30px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            padding: 40px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .feature-bullet {
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            border-radius: 50%;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(78, 205, 196, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #764ba2, #667eea);
+        }
+
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .circle-1 {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .circle-2 {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .circle-3 {
+            width: 60px;
+            height: 60px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .feature-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-circle circle-1"></div>
+        <div class="floating-circle circle-2"></div>
+        <div class="floating-circle circle-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚀</div>
+            <h1 class="title">AgenticMeet AI</h1>
+            <p class="subtitle">Next-Generation AI-Powered Meeting Intelligence</p>
+        </div>
+
+        <div class="features-grid">
+            <!-- Advanced Speaker Management -->
+            <div class="feature-card highlight">
+                <div class="feature-header">
+                    <div class="feature-icon">👥</div>
+                    <h3 class="feature-title">Advanced Speaker Management</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">AI-powered speaker diarization</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Custom speaker name assignment</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Speaker timeline visualization</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Transcript formatted with speaker names</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Multi-Language Support -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">🌍</div>
+                    <h3 class="feature-title">Multi-Language Support</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Auto language detection</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Translation to 5+ languages</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Side-by-side original/translated view</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Speaker context preservation</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Risk & Urgency Detection -->
+            <div class="feature-card highlight">
+                <div class="feature-header">
+                    <div class="feature-icon">🚨</div>
+                    <h3 class="feature-title">Risk & Urgency Detection</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Deadline identification with context</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Budget risk flagging</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Legal concern detection</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Customer issue alerts</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Intelligent Analytics -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Intelligent Analytics</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Speaker contribution analysis</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Risk priority dashboard</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Interactive visualizations</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Meeting performance metrics</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Smart Topic Segmentation -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">Smart Topic Segmentation</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">AI-powered topic detection</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Timeline-based chapter creation</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Topic-specific summaries</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Searchable content structure</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Next Meeting AI -->
+            <div class="feature-card highlight">
+                <div class="feature-header">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">Next Meeting AI</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Auto-suggest next meeting topics</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Based on unresolved items</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Smart priority ordering</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Action item follow-up tracking</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Export & Sharing -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">📤</div>
+                    <h3 class="feature-title">Export & Sharing</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Multi-format PDF reports</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Risk-specific summaries</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Complete meeting packages</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Email-ready formats</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Real-time Processing -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Real-time Processing</h3>
+                </div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Lightning-fast transcription</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Instant risk identification</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">Live speaker recognition</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-bullet"></div>
+                        <span class="feature-text">On-demand summary generation</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2 style="margin-bottom: 20px; font-size: 2rem;">Transform Your Meetings Today</h2>
+            <p style="margin-bottom: 30px; font-size: 1.1rem; opacity: 0.9;">Upload your first meeting recording and experience the power of AI-driven meeting intelligence.</p>
+            <a href="#upload" class="cta-button">🎤 Start Your First Analysis</a>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive animations
+        const cards = document.querySelectorAll('.feature-card');
+        
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            
+            card.addEventListener('mouseenter', () => {
+                card.style.animation = 'none';
+                card.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Parallax effect for floating elements
+        document.addEventListener('mousemove', (e) => {
+            const circles = document.querySelectorAll('.floating-circle');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            circles.forEach((circle, index) => {
+                const factor = (index + 1) * 0.1;
+                circle.style.transform = `translate(${x * factor * 20}px, ${y * factor * 20}px)`;
+            });
+        });
+    </script>
+</body>
+</html>

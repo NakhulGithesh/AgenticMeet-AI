@@ -10,3 +10,7 @@ scikit-learn
 nltk
 reportlab
 python-docx
+googletrans==4.0.0rc1
+langdetect
+matplotlib
+numpy
