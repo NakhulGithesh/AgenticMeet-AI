@@ -28,27 +28,42 @@ AgenticMeet AI is an advanced AI-powered meeting assistant that transforms your 
 ```bash
 git clone https://github.com/NakhulGithesh/AgenticMeet-AI.git
 cd AgenticMeet-AI
-````
+```
 
-### 2️⃣ Install Dependencies (with uv for speed)
+### 2️⃣ Install FFmpeg (Required!)
 
+**FFmpeg is REQUIRED for audio/video processing.**
+
+Quick install commands:
+- **Windows**: `choco install ffmpeg` (or see [detailed guide](FFMPEG_INSTALLATION.md))
+- **Mac**: `brew install ffmpeg`
+- **Linux**: `sudo apt install ffmpeg` (Ubuntu/Debian)
+
+For complete installation instructions, see [FFMPEG_INSTALLATION.md](FFMPEG_INSTALLATION.md)
+
+### 3️⃣ Install Python Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Or using uv for faster installation:
 ```bash
 uv pip install -r requirements.txt
 ```
 
-### 3️⃣ Download NLTK Data
+### 4️⃣ Download NLTK Data
 
 ```bash
 python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
 ```
-
 
 ## ▶️ Usage
 
 **Run the App**
 
 ```bash
-streamlit run app.py
+streamlit run _app.py
 ```
 
 **Upload a file** (`.mp3`, `.wav`, `.mp4`, `.m4a`) and explore:
