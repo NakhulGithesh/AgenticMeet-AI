@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(git checkout:*)",
+      "Bash(where:*)",
+      "Bash(powershell:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull:*)",
+      "Bash(git rebase:*)",
+      "Bash(git push:*)",
+      "Bash(git mv:*)",
+      "Bash(streamlit run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

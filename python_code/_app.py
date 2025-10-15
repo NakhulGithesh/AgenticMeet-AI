@@ -223,24 +223,6 @@ if uploaded_file is not None:
                             st.write(f"• {speaker} → **{display_name}**")
                         else:
                             st.write(f"• {speaker} (no custom name)")
-                
-                    # Display speaker timeline
-                    st.subheader("⏱️ Speaking Timeline")
-                    if st.session_state.speaker_segments:
-                        timeline_data = []
-                        for seg in st.session_state.speaker_segments:
-                            display_name = st.session_state.speaker_names.get(seg['speaker'], seg['speaker']) if st.session_state.speaker_names else seg['speaker']
-                            timeline_data.append({
-                                'Speaker': display_name,
-                                'Start': seg['start'],
-                                'End': seg['end'],
-                                'Duration': seg['end'] - seg['start']
-                            })
-                    
-                        df = pd.DataFrame(timeline_data)
-                        fig = px.timeline(df, x_start='Start', x_end='End', y='Speaker', 
-                                        title="Speaker Timeline", color='Speaker')
-                        st.plotly_chart(fig, use_container_width=True)
 
         with tab2:
                 st.subheader("🌍 Multi-Language Translation")
@@ -350,8 +332,11 @@ if uploaded_file is not None:
                         flags=re.IGNORECASE
                     )
             
-                # Display the transcript
-                st.markdown(current_transcript, unsafe_allow_html=True)
+                # Display the transcript in a scrollable container
+                st.markdown(
+                    f'<div style="height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9;">{current_transcript}</div>',
+                    unsafe_allow_html=True
+                )
             
                 # Risk details in expandable section
                 if st.session_state.risk_flags:

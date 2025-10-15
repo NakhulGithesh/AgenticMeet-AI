@@ -8,14 +8,14 @@ try:
     from transformers import pipeline
     print("Loading summarization model...")
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-    print("✅ Summarization model loaded successfully!")
+    print("[SUCCESS] Summarization model loaded successfully!")
 except ImportError as e:
-    print(f"❌ Transformers not available: {e}")
-    print("📝 Will use rule-based summarization instead")
+    print(f"[ERROR] Transformers not available: {e}")
+    print("[INFO] Will use rule-based summarization instead")
     summarizer = None
 except Exception as e:
-    print(f"❌ Error loading summarization model: {e}")
-    print("📝 Will use rule-based summarization instead")
+    print(f"[ERROR] Error loading summarization model: {e}")
+    print("[INFO] Will use rule-based summarization instead")
     summarizer = None
 
 def summarize_text(text, max_chunk_len=1000):
@@ -179,13 +179,13 @@ def test_summarization():
     
     try:
         result = summarize_text(test_text)
-        print("✅ Summarization test passed!")
+        print("[SUCCESS] Summarization test passed!")
         print(f"Summary: {result['summary']}")
         print(f"Action Items: {result['action_items']}")
         print(f"Key Decisions: {result['key_decisions']}")
         return True
     except Exception as e:
-        print(f"❌ Summarization test failed: {e}")
+        print(f"[ERROR] Summarization test failed: {e}")
         return False
 
 if __name__ == "__main__":
