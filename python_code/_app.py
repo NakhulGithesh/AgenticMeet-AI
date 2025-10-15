@@ -39,19 +39,19 @@ def highlight_risks_with_speakers(text, risk_data):
         # Highlight different types of risks with colors
         for deadline in risk_data.get('deadlines', []):
             if deadline.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(deadline, f'<span style="background-color: #ffcccc; padding: 2px; border-radius: 3px;">⏰ {deadline}</span>')
-        
+                highlighted_line = highlighted_line.replace(deadline, f'<span style="background-color: #8B0000; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">⏰ {deadline}</span>')
+
         for risk in risk_data.get('budget_risks', []):
             if risk.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(risk, f'<span style="background-color: #fff2cc; padding: 2px; border-radius: 3px;">💰 {risk}</span>')
-        
+                highlighted_line = highlighted_line.replace(risk, f'<span style="background-color: #CC5500; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">💰 {risk}</span>')
+
         for concern in risk_data.get('legal_concerns', []):
             if concern.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(concern, f'<span style="background-color: #e6f3ff; padding: 2px; border-radius: 3px;">⚖️ {concern}</span>')
-        
+                highlighted_line = highlighted_line.replace(concern, f'<span style="background-color: #1E5A8E; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">⚖️ {concern}</span>')
+
         for issue in risk_data.get('customer_issues', []):
             if issue.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(issue, f'<span style="background-color: #ffcccc; padding: 2px; border-radius: 3px;">😠 {issue}</span>')
+                highlighted_line = highlighted_line.replace(issue, f'<span style="background-color: #8B0000; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">😠 {issue}</span>')
         
         highlighted_lines.append(highlighted_line)
     
@@ -334,7 +334,7 @@ if uploaded_file is not None:
             
                 # Display the transcript in a scrollable container
                 st.markdown(
-                    f'<div style="height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9;">{current_transcript}</div>',
+                    f'<div style="height: 500px; overflow-y: auto; border: 2px solid #4a4a4a; padding: 20px; border-radius: 8px; background-color: #1e1e1e; color: #e0e0e0; font-family: monospace; line-height: 1.6;">{current_transcript}</div>',
                     unsafe_allow_html=True
                 )
             
