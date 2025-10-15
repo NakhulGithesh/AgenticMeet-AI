@@ -58,12 +58,34 @@ uv pip install -r requirements.txt
 python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
 ```
 
+## 📁 Project Structure
+
+```
+AgenticMeet-AI/
+├── python_code/          # All Python source files
+│   ├── _app.py          # Main Streamlit application
+│   ├── _transcribe.py   # Audio transcription module
+│   ├── _summarize.py    # Meeting summarization
+│   ├── _analytics.py    # Meeting analytics
+│   └── ...              # Other Python modules
+├── scripts/             # Installation and setup scripts
+│   ├── INSTALL_FFMPEG_WINDOWS.bat
+│   └── *.ps1           # PowerShell scripts
+├── docs/                # Documentation files
+│   ├── FFMPEG_INSTALLATION.md
+│   ├── FIXES_APPLIED.md
+│   └── features.html
+├── requirements.txt     # Python dependencies
+├── README.md           # This file
+└── LICENSE             # MIT License
+```
+
 ## ▶️ Usage
 
 **Run the App**
 
 ```bash
-streamlit run _app.py
+streamlit run python_code/_app.py
 ```
 
 **Upload a file** (`.mp3`, `.wav`, `.mp4`, `.m4a`) and explore:
@@ -90,7 +112,7 @@ streamlit run _app.py
 
 ## ⚙️ Configuration
 
-Adjust model in **`transcribe.py`**:
+Adjust model in **`python_code/_transcribe.py`**:
 
 ```python
 model = whisper.load_model("base")  # Options: tiny, small, medium, large
