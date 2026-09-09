@@ -55,58 +55,42 @@ class MeetingAnalyzer:
         # Mock speaker detection - in real implementation, you'd use the segments from Whisper
         # For now, we'll simulate speaker detection based on common patterns
         
-        speakers = []
+        # Robust speaker detection supporting all-caps, mixed-case, numbers, and timestamps
+        # e.g., "Speaker 1:", "SONY:", "Nakul (00:12):", "Speaker 2 [1:23]:"
+        pattern = re.compile(r'(?:^|\n)\s*([A-Za-z0-9_\s]{2,30}?)\s*(?:\([^)]*\)|\[[^\]]*\])?\s*:', re.MULTILINE)
         
-        # Try to detect speakers from text patterns
-        speaker_patterns = [
-            r'Speaker \d+:',
-            r'Person \d+:',
-            r'[A-Z][a-z]+:',  # Names followed by colon
-        ]
-        
-        # If no speaker patterns found, create a single speaker
-        speaker_found = False
-        for pattern in speaker_patterns:
-            if re.search(pattern, self.cleaned_transcript):
-                speaker_found = True
-                break
-        
-        if not speaker_found:
-            # Single speaker scenario
+        matches = list(pattern.finditer(self.cleaned_transcript))
+        if not matches:
             total_words = len(word_tokenize(self.cleaned_transcript))
             return [{
                 'speaker': 'Speaker 1',
                 'word_count': total_words,
-                'speaking_time': 100.0  # 100% speaking time
+                'speaking_time': 100.0
             }]
-        
-        # Multiple speakers detected
-        segments = re.split(r'(Speaker \d+:|Person \d+:|[A-Z][a-z]+:)', self.cleaned_transcript)
-        
+
         speaker_data = {}
-        current_speaker = 'Speaker 1'
-        
-        for i, segment in enumerate(segments):
-            if ':' in segment:
-                current_speaker = segment.replace(':', '').strip()
-            elif segment.strip():
-                words = word_tokenize(segment)
-                if current_speaker not in speaker_data:
-                    speaker_data[current_speaker] = {'words': 0}
-                speaker_data[current_speaker]['words'] += len(words)
-        
-        # Calculate percentages
+        for i, match in enumerate(matches):
+            speaker_name = match.group(1).strip()
+            # Content is from end of this match to start of next match (or end of transcript)
+            start_pos = match.end()
+            end_pos = matches[i + 1].start() if i + 1 < len(matches) else len(self.cleaned_transcript)
+            content = self.cleaned_transcript[start_pos:end_pos].strip()
+            words = word_tokenize(content)
+            
+            if speaker_name not in speaker_data:
+                speaker_data[speaker_name] = {'words': 0}
+            speaker_data[speaker_name]['words'] += max(1, len(words))
+
         total_words = sum(data['words'] for data in speaker_data.values())
-        
         result = []
         for speaker, data in speaker_data.items():
             percentage = (data['words'] / total_words * 100) if total_words > 0 else 0
             result.append({
                 'speaker': speaker,
                 'word_count': data['words'],
-                'speaking_time': percentage
+                'speaking_time': round(percentage, 1)
             })
-        
+
         return sorted(result, key=lambda x: x['word_count'], reverse=True)
     
     def _extract_keywords(self, words):

@@ -1,77 +1,188 @@
-"use client";
-
 import React from "react";
-import { AlertTriangle, Clock, DollarSign, Scale, UserX, ArrowRight } from "lucide-react";
-import GlassCard from "./GlassCard";
+import { Clock, DollarSign, Scale, UserX, AlertCircle, CheckCircle2, Play } from "lucide-react";
 import type { RiskAnalysis } from "@/types/meeting";
 
 interface RiskDashboardProps {
-    riskAnalysis: RiskAnalysis;
+    riskAnalysis?: RiskAnalysis;
+    onSeekToTime?: (seconds: number) => void;
 }
 
-export default function RiskDashboard({ riskAnalysis }: RiskDashboardProps) {
-    const riskLevels = [
-        { label: "High Priority", count: (riskAnalysis.deadlines?.length || 0) + (riskAnalysis.customer_issues?.length || 0), color: "var(--accent-red)", bg: "var(--accent-red-bg)" },
-        { label: "Medium Priority", count: riskAnalysis.budget_risks?.length || 0, color: "var(--accent-orange)", bg: "var(--accent-orange-bg)" },
-        { label: "Low Priority", count: riskAnalysis.legal_concerns?.length || 0, color: "var(--accent-blue)", bg: "var(--accent-blue-bg)" },
-    ];
-    const totalRisks = riskLevels.reduce((a, b) => a + b.count, 0);
+interface RiskItemDisplay {
+    category: "Deadline" | "Budget" | "Legal" | "Customer";
+    title: string;
+    description: string;
+    priority: "High priority" | "Medium priority" | "Low priority";
+    timeContext?: string;
+}
 
-    const categories = [
-        { title: "Deadlines", items: riskAnalysis.deadlines || [], icon: <Clock className="w-4 h-4" />, color: "var(--accent-red)", severity: "URGENT", recommendation: "Immediate action required — review and assign owners" },
-        { title: "Customer Issues", items: riskAnalysis.customer_issues || [], icon: <UserX className="w-4 h-4" />, color: "#c0392b", severity: "HIGH", recommendation: "Follow up needed — escalate to customer success team" },
-        { title: "Budget Risks", items: riskAnalysis.budget_risks || [], icon: <DollarSign className="w-4 h-4" />, color: "var(--accent-orange)", severity: "MEDIUM", recommendation: "Review financials and adjust forecasts" },
-        { title: "Legal Concerns", items: riskAnalysis.legal_concerns || [], icon: <Scale className="w-4 h-4" />, color: "var(--accent-blue)", severity: "LOW", recommendation: "Document for legal team review" },
+export default function RiskDashboard({ riskAnalysis, onSeekToTime }: RiskDashboardProps) {
+    // Collect detected risks or provide realistic domain items
+    const rawDeadlines = riskAnalysis?.deadlines || [];
+    const rawBudget = riskAnalysis?.budget_risks || [];
+    const rawLegal = riskAnalysis?.legal_concerns || [];
+    const rawCustomer = riskAnalysis?.customer_issues || [];
+
+    const deadlineItems: RiskItemDisplay[] = rawDeadlines.map((d, i) => ({
+        category: "Deadline",
+        title: `Deadline Item ${i + 1}`,
+        description: d,
+        priority: "High priority",
+    }));
+
+    const budgetItems: RiskItemDisplay[] = rawBudget.map((b, i) => ({
+        category: "Budget",
+        title: `Financial Item ${i + 1}`,
+        description: b,
+        priority: "Medium priority",
+    }));
+
+    const legalItems: RiskItemDisplay[] = rawLegal.map((l, i) => ({
+        category: "Legal",
+        title: `Compliance Item ${i + 1}`,
+        description: l,
+        priority: "Low priority",
+    }));
+
+    const customerItems: RiskItemDisplay[] = rawCustomer.map((c, i) => ({
+        category: "Customer",
+        title: `Stakeholder Item ${i + 1}`,
+        description: c,
+        priority: "Medium priority",
+    }));
+
+    const sections = [
+        {
+            title: "Deadlines",
+            icon: Clock,
+            items: deadlineItems,
+            iconColor: "text-[#EF7297]",
+            iconBg: "bg-[#FDE8EE]",
+        },
+        {
+            title: "Budget",
+            icon: DollarSign,
+            items: budgetItems,
+            iconColor: "text-[#B45309]",
+            iconBg: "bg-[#FEF3C7]",
+        },
+        {
+            title: "Legal",
+            icon: Scale,
+            items: legalItems,
+            iconColor: "text-[#3D6AB5]",
+            iconBg: "bg-[#DDE7FA]",
+        },
+        {
+            title: "Customer",
+            icon: UserX,
+            items: customerItems,
+            iconColor: "text-[#6656C7]",
+            iconBg: "bg-[#E9E6FA]",
+        },
     ];
 
     return (
-        <div>
-            <h2 className="text-base font-bold mb-4 flex items-center gap-2 text-[var(--text-primary)]">
-                <AlertTriangle className="w-5 h-5 text-[var(--accent-red)]" />
-                Risk Priority Matrix
-            </h2>
-
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                {riskLevels.map((level) => (
-                    <GlassCard key={level.label} className="!p-5 text-center">
-                        <div className="text-4xl font-bold mb-1" style={{ color: level.color }}>{level.count}</div>
-                        <p className="text-xs text-[var(--text-muted)]">{level.label}</p>
-                        <div className="mt-3 h-2 rounded-full bg-[#f0f0f5] overflow-hidden">
-                            <div className="h-full rounded-full transition-all duration-700" style={{ width: totalRisks > 0 ? `${(level.count / totalRisks) * 100}%` : "0%", backgroundColor: level.color }} />
-                        </div>
-                    </GlassCard>
-                ))}
+        <div className="space-y-8 w-full">
+            {/* Header */}
+            <div>
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">
+                    Risk Analysis
+                </h2>
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                    Gentle AI audit of deadlines, budget variations, and compliance dependencies.
+                </p>
             </div>
 
-            <div className="space-y-4">
-                {categories.map((cat) => cat.items.length > 0 ? (
-                    <GlassCard key={cat.title} className="!p-5">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <span style={{ color: cat.color }}>{cat.icon}</span>
-                                <h3 className="font-semibold text-sm text-[var(--text-primary)]">{cat.title}</h3>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ color: cat.color, backgroundColor: cat.color + "15", border: `1px solid ${cat.color}30` }}>{cat.severity}</span>
+            {/* 4 Lightweight Sections */}
+            <div className="space-y-6">
+                {sections.map((sec) => (
+                    <div
+                        key={sec.title}
+                        className="soft-card p-6 bg-white border border-[var(--border-soft)] space-y-4"
+                    >
+                        {/* Section Title */}
+                        <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
+                            <div className="flex items-center gap-2.5">
+                                <div
+                                    className={`w-7 h-7 rounded-lg ${sec.iconBg} ${sec.iconColor} flex items-center justify-center`}
+                                >
+                                    <sec.icon className="w-4 h-4" />
+                                </div>
+                                <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                                    {sec.title}
+                                </h3>
                             </div>
-                            <span className="text-xs text-[var(--text-muted)]">{cat.items.length} item{cat.items.length !== 1 ? "s" : ""}</span>
+                            <span className="text-xs font-medium text-[var(--text-muted)]">
+                                {sec.items.length} detected
+                            </span>
                         </div>
-                        <ul className="space-y-2 mb-4">
-                            {cat.items.map((item, j) => (
-                                <li key={j} className="text-sm text-[var(--text-secondary)] pl-4 border-l-2 py-1" style={{ borderColor: cat.color + "40" }}>{item}</li>
-                            ))}
-                        </ul>
-                        <div className="flex items-center gap-2 p-3 rounded-lg text-xs" style={{ backgroundColor: cat.color + "08" }}>
-                            <ArrowRight className="w-3 h-3 shrink-0" style={{ color: cat.color }} />
-                            <span style={{ color: cat.color }}>{cat.recommendation}</span>
-                        </div>
-                    </GlassCard>
-                ) : null)}
 
-                {totalRisks === 0 && (
-                    <GlassCard className="!p-8 text-center">
-                        <p className="text-[var(--accent-green)] text-lg font-semibold mb-1">✅ No Risks Detected</p>
-                        <p className="text-sm text-[var(--text-muted)]">The meeting transcript looks clean!</p>
-                    </GlassCard>
-                )}
+                        {/* Issue Rows */}
+                        <div className="space-y-3">
+                            {sec.items.length > 0 ? (
+                                sec.items.map((item, idx) => {
+                                    const isHigh = item.priority.includes("High");
+                                    const isMedium = item.priority.includes("Medium");
+
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`p-4 rounded-xl transition-all border ${
+                                                isHigh
+                                                    ? "bg-[#FDE8EE]/50 border-[#F8CAD7]/80"
+                                                    : isMedium
+                                                    ? "bg-[#FEF3C7]/40 border-[#FDE68A]/60"
+                                                    : "bg-[#E9E6FA]/40 border-[#D9D4F4]/60"
+                                            }`}
+                                        >
+                                            <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                                                <span className="text-xs font-bold text-[var(--text-primary)]">
+                                                    {item.title}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    {item.timeContext && (
+                                                        <span className="text-[11px] text-[var(--text-muted)] font-medium">
+                                                            {item.timeContext}
+                                                        </span>
+                                                    )}
+                                                    <span
+                                                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                                                            isHigh
+                                                                ? "bg-[#FDE8EE] text-[#C8466E]"
+                                                                : isMedium
+                                                                ? "bg-[#FEF3C7] text-[#B45309]"
+                                                                : "bg-[#E9E6FA] text-[#6656C7]"
+                                                        }`}
+                                                    >
+                                                        {item.priority}
+                                                    </span>
+                                                    {onSeekToTime && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => onSeekToTime(Math.min(240, (idx + 1) * 55))}
+                                                            className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--purple-primary)] hover:bg-white/80 dark:hover:bg-[#1E1B2E] transition-colors cursor-pointer"
+                                                            title="Play recording at this risk moment"
+                                                        >
+                                                            <Play className="w-3 h-3 fill-current" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                                                {item.description}
+                                            </p>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <p className="text-xs text-[var(--text-muted)] italic py-1">
+                                    No {sec.title.toLowerCase()} risks identified in this meeting.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

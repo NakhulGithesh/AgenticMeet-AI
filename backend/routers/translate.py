@@ -14,24 +14,32 @@ async def translate_transcript(task_id: str, body: TranslationRequest):
     task = task_manager.get_task(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    if task.status != TaskStatus.COMPLETED:
-        raise HTTPException(status_code=400, detail="Task not completed yet")
 
-    from _translator import MultiLanguageTranslator
+    transcript = (
+        body.transcript
+        or task.result.get("formatted_transcript")
+        or task.result.get("cleaned_transcript", "")
+    )
 
-    transcript = task.result.get("formatted_transcript") or task.result.get("cleaned_transcript", "")
+    if not transcript:
+        raise HTTPException(status_code=400, detail="No transcript available for translation")
 
     if body.language == "English":
         return {"language": "English", "translated_transcript": transcript}
 
+    # Check cache first
+    translations = task.result.get("translations", {})
+    if body.language in translations:
+        return {"language": body.language, "translated_transcript": translations[body.language]}
+
     try:
+        from _translator import MultiLanguageTranslator
         translator = MultiLanguageTranslator()
         translated = translator.translate_with_speaker_preservation(transcript, body.language)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
+        translated = f"[{body.language} Translation unavailable: {str(e)}]\n\n" + transcript
 
     # Cache translation
-    translations = task.result.get("translations", {})
     translations[body.language] = translated
     task_manager.update_task(task_id, result={"translations": translations})
 

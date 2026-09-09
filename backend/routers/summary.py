@@ -9,6 +9,7 @@ from models.schemas import SummaryResponse
 router = APIRouter()
 
 
+@router.get("/summary/{task_id}", response_model=SummaryResponse)
 @router.post("/summary/{task_id}", response_model=SummaryResponse)
 async def generate_summary(task_id: str):
     task = task_manager.get_task(task_id)
@@ -16,6 +17,16 @@ async def generate_summary(task_id: str):
         raise HTTPException(status_code=404, detail="Task not found")
     if task.status != TaskStatus.COMPLETED:
         raise HTTPException(status_code=400, detail="Task not completed yet")
+
+    cached_summary = task.result.get("summary")
+    cached_agenda = task.result.get("next_agenda")
+    if cached_summary and isinstance(cached_summary, dict) and cached_summary.get("summary"):
+        return SummaryResponse(
+            summary=cached_summary.get("summary", ""),
+            action_items=cached_summary.get("action_items", []),
+            key_decisions=cached_summary.get("key_decisions", []),
+            next_agenda=cached_agenda or [],
+        )
 
     from _summarize import summarize_text
     from _next_meet import AgendaGenerator

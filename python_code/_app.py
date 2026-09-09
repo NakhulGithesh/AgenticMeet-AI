@@ -36,22 +36,22 @@ def highlight_risks_with_speakers(text, risk_data):
         # Check if this line contains any risk items
         line_lower = line.lower()
         
-        # Highlight different types of risks with colors
+        # Highlight different types of risks with soft pastel colors
         for deadline in risk_data.get('deadlines', []):
             if deadline.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(deadline, f'<span style="background-color: #8B0000; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">⏰ {deadline}</span>')
+                highlighted_line = highlighted_line.replace(deadline, f'<span style="background-color: #FDE8EE; color: #D6456E; border: 1px solid #FAB4C8; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85em;">⏰ {deadline}</span>')
 
         for risk in risk_data.get('budget_risks', []):
             if risk.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(risk, f'<span style="background-color: #CC5500; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">💰 {risk}</span>')
+                highlighted_line = highlighted_line.replace(risk, f'<span style="background-color: #FEF3D6; color: #B25E09; border: 1px solid #FCD34D; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85em;">💰 {risk}</span>')
 
         for concern in risk_data.get('legal_concerns', []):
             if concern.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(concern, f'<span style="background-color: #1E5A8E; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">⚖️ {concern}</span>')
+                highlighted_line = highlighted_line.replace(concern, f'<span style="background-color: #E9E6FA; color: #6656C7; border: 1px solid #C4BEF2; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85em;">⚖️ {concern}</span>')
 
         for issue in risk_data.get('customer_issues', []):
             if issue.lower() in line_lower:
-                highlighted_line = highlighted_line.replace(issue, f'<span style="background-color: #8B0000; color: #ffffff; padding: 4px 8px; border-radius: 4px; font-weight: bold;">😠 {issue}</span>')
+                highlighted_line = highlighted_line.replace(issue, f'<span style="background-color: #FDE8EE; color: #D6456E; border: 1px solid #FAB4C8; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85em;">💬 {issue}</span>')
         
         highlighted_lines.append(highlighted_line)
     
@@ -91,6 +91,53 @@ st.set_page_config(
 )
 
 st.title("🎤 AgenticMeet AI")
+
+# Soft modern aesthetic CSS
+st.markdown("""
+<style>
+    .stApp {
+        background-color: #EEF0FA !important;
+        color: #222238 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    .stButton > button {
+        background-color: #6656C7 !important;
+        color: #ffffff !important;
+        border-radius: 12px !important;
+        border: none !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1.25rem !important;
+        box-shadow: 0 4px 12px rgba(102, 86, 199, 0.15) !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton > button:hover {
+        background-color: #5544B3 !important;
+        box-shadow: 0 6px 16px rgba(102, 86, 199, 0.25) !important;
+    }
+    [data-testid="stMetricValue"], [data-testid="stMetric"] {
+        background-color: #FFFFFF !important;
+        border-radius: 16px !important;
+        padding: 14px !important;
+        border: 1px solid rgba(102, 86, 199, 0.1) !important;
+        box-shadow: 0 4px 14px rgba(102, 86, 199, 0.05) !important;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px !important;
+        border-bottom: 1px solid #D9D4F4 !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px 8px 0 0 !important;
+        padding: 8px 16px !important;
+        color: #707089 !important;
+        font-weight: 500 !important;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #6656C7 !important;
+        border-bottom: 2px solid #6656C7 !important;
+        font-weight: 700 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Initialize session state
 session_vars = [
@@ -160,6 +207,32 @@ if uploaded_file is not None:
             formatted_transcript = speaker_manager.format_transcript_with_speakers(
                 cleaned_transcript, speaker_segments
             )
+
+            # Pre-compute risks, topics, summary, and agenda so all tabs are populated immediately
+            with st.spinner("🚨 Detecting risks..."):
+                risk_detector = RiskDetector()
+                st.session_state.risk_flags = risk_detector.analyze_transcript(
+                    formatted_transcript or cleaned_transcript
+                )
+
+            with st.spinner("🎯 Segmenting topics..."):
+                segmenter = TopicSegmenter()
+                st.session_state.topics = segmenter.segment_topics(
+                    transcript_data, formatted_transcript or cleaned_transcript
+                )
+
+            with st.spinner("📄 Generating comprehensive summary..."):
+                st.session_state.summary = summarize_text(
+                    formatted_transcript or cleaned_transcript
+                )
+
+            with st.spinner("📅 Generating next meeting agenda..."):
+                agenda_gen = AgendaGenerator()
+                st.session_state.next_agenda = agenda_gen.generate_agenda(
+                    formatted_transcript or cleaned_transcript,
+                    st.session_state.summary,
+                    st.session_state.risk_flags
+                )
 
             st.session_state.transcript_data = transcript_data
             st.session_state.speaker_segments = speaker_segments

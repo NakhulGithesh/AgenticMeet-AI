@@ -21,6 +21,14 @@ export interface MeetingResult {
     speaker_segments: SpeakerSegment[];
     risk_analysis: RiskAnalysis;
     topics: TopicSegment[];
+    summary?: SummaryData;
+    next_agenda?: string[];
+    speaker_mappings?: Record<string, string>;
+    speaker_photos?: Record<string, string>;
+    audio_url?: string;
+    video_url?: string;
+    media_url?: string;
+    is_video?: boolean;
 }
 
 export interface SpeakerSegment {
@@ -72,11 +80,20 @@ export interface TopicSegment {
 }
 
 export type ActiveTab =
-    | "dashboard"
+    | "overview"
     | "transcript"
     | "speakers"
+    | "translation"
     | "risks"
-    | "analytics"
     | "topics"
     | "summary"
+    | "analytics"
     | "export";
+
+export interface UserProfile {
+    name: string;
+    email: string;
+    avatarUrl: string;
+    role?: string;
+}
+

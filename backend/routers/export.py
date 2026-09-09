@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("/export/{task_id}")
-async def export_report(task_id: str, type: str = Query("pdf", regex="^(pdf|risk)$")):
+async def export_report(task_id: str, type: str = Query("pdf", pattern="^(pdf|risk)$")):
     task = task_manager.get_task(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")

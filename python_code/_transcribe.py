@@ -4,24 +4,40 @@ import subprocess
 import shutil
 from typing import Dict, Any
 
+# Ensure standard unix binary locations are in PATH
+for extra_path in ['/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin']:
+    if os.path.isdir(extra_path) and extra_path not in os.environ.get('PATH', ''):
+        os.environ['PATH'] = extra_path + os.pathsep + os.environ.get('PATH', '')
+
 def check_ffmpeg_installed():
     """Check if FFmpeg is installed and accessible"""
-    # Try standard method first (with shell=True for Windows compatibility)
+    # 1. Check if directly available via which or PATH
+    ffmpeg_in_path = shutil.which('ffmpeg')
+    if ffmpeg_in_path:
+        print(f"[OK] FFmpeg found via system PATH at: {ffmpeg_in_path}")
+        return True
+
+    # 2. Try standard subprocess check without shell=True
     try:
         result = subprocess.run(['ffmpeg', '-version'],
                               capture_output=True,
                               text=True,
-                              timeout=5,
-                              shell=True)
+                              timeout=5)
         if result.returncode == 0:
-            print("[OK] FFmpeg found via system PATH")
+            print("[OK] FFmpeg verified via system execution")
             return True
     except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
-        print(f"Standard FFmpeg check failed: {e}")
+        pass
 
-    # Try common Windows locations (including WinGet)
+    # 3. Try common locations (macOS Homebrew, Linux, Windows)
     localappdata = os.environ.get('LOCALAPPDATA', '')
     common_paths = [
+        # macOS Homebrew & system paths
+        '/opt/homebrew/bin/ffmpeg',
+        '/usr/local/bin/ffmpeg',
+        '/usr/bin/ffmpeg',
+        '/bin/ffmpeg',
+        # Windows locations
         os.path.join(localappdata, 'Microsoft', 'WinGet', 'Links', 'ffmpeg.exe'),
         os.path.join(localappdata, 'Microsoft', 'WinGet', 'Packages', 'Gyan.FFmpeg*', 'ffmpeg*', 'bin', 'ffmpeg.exe'),
         r'C:\ffmpeg\bin\ffmpeg.exe',
@@ -42,7 +58,7 @@ def check_ffmpeg_installed():
         else:
             path = path_pattern
 
-        if os.path.exists(path):
+        if os.path.exists(path) and (os.access(path, os.X_OK) or path.endswith('.exe')):
             print(f"[OK] Found FFmpeg at: {path}")
             # Add to PATH for this session
             bin_dir = os.path.dirname(path)

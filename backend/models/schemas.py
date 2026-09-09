@@ -91,7 +91,9 @@ class MeetingDataResponse(BaseModel):
 
 class TranslationRequest(BaseModel):
     language: str  # "Spanish" | "Hindi" | "French" | "German"
+    transcript: Optional[str] = None
 
 
 class SpeakerUpdateRequest(BaseModel):
     speaker_mappings: Dict[str, str]  # { "Speaker 1": "Alice", ... }
+    formatted_transcript: Optional[str] = None

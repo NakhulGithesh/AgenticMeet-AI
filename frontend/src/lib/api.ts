@@ -15,10 +15,23 @@ const api = axios.create({
 });
 
 /* ── Upload ─────────────────────────────────────────────────── */
-export async function uploadFile(file: File): Promise<TaskResponse> {
+export async function uploadFile(
+    file: File,
+    onProgress?: (percent: number) => void
+): Promise<TaskResponse> {
     const form = new FormData();
     form.append("file", file);
-    const { data } = await api.post<TaskResponse>("/upload", form);
+    const { data } = await api.post<TaskResponse>("/upload", form, {
+        timeout: 0, // No timeout for large file uploads (up to 2GB+)
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+                const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                onProgress?.(percent);
+            }
+        },
+    });
     return data;
 }
 
@@ -45,19 +58,32 @@ export async function generateSummary(taskId: string): Promise<SummaryData> {
 /* ── Translation ────────────────────────────────────────────── */
 export async function translateTranscript(
     taskId: string,
-    language: string
+    language: string,
+    transcript?: string
 ): Promise<{ language: string; translated_transcript: string }> {
-    const { data } = await api.post(`/translate/${taskId}`, { language });
+    const { data } = await api.post(`/translate/${taskId}`, {
+        language,
+        transcript,
+    });
     return data;
 }
 
 /* ── Speaker Rename ─────────────────────────────────────────── */
 export async function updateSpeakers(
     taskId: string,
-    speakerMappings: Record<string, string>
-): Promise<{ message: string; formatted_transcript: string }> {
+    speakerMappings: Record<string, string>,
+    formattedTranscript?: string
+): Promise<{
+    message: string;
+    formatted_transcript: string;
+    cleaned_transcript?: string;
+    speaker_segments?: any[];
+    summary?: any;
+    topics?: any[];
+}> {
     const { data } = await api.put(`/speakers/${taskId}`, {
         speaker_mappings: speakerMappings,
+        formatted_transcript: formattedTranscript,
     });
     return data;
 }

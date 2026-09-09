@@ -11,6 +11,7 @@ export function useTask(taskId: string | null) {
     const [status, setStatus] = useState<TaskStatusResponse | null>(null);
     const [isPolling, setIsPolling] = useState(false);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const errorCountRef = useRef(0);
 
     const stopPolling = useCallback(() => {
         if (intervalRef.current) {
@@ -23,16 +24,22 @@ export function useTask(taskId: string | null) {
     const startPolling = useCallback(() => {
         if (!taskId) return;
         setIsPolling(true);
+        errorCountRef.current = 0;
 
         const poll = async () => {
             try {
                 const s = await getTaskStatus(taskId);
+                errorCountRef.current = 0;
                 setStatus(s);
                 if (s.status === "completed" || s.status === "failed") {
                     stopPolling();
                 }
-            } catch {
-                stopPolling();
+            } catch (err) {
+                errorCountRef.current += 1;
+                // Only stop polling if there are persistent consecutive errors (10 times = 20s)
+                if (errorCountRef.current >= 10) {
+                    stopPolling();
+                }
             }
         };
 
@@ -41,7 +48,14 @@ export function useTask(taskId: string | null) {
     }, [taskId, stopPolling]);
 
     useEffect(() => {
-        if (taskId) startPolling();
+        // Crucial: Clear old task status immediately when switching tasks or clearing taskId
+        setStatus(null);
+        errorCountRef.current = 0;
+        if (taskId) {
+            startPolling();
+        } else {
+            stopPolling();
+        }
         return stopPolling;
     }, [taskId, startPolling, stopPolling]);
 
