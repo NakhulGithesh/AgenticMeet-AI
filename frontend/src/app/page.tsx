@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import Sidebar, { NavItem } from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import UploadZone from "@/components/UploadZone";
@@ -468,49 +468,54 @@ export default function Home() {
     const effectiveResult = localResult ?? result ?? null;
     const hasActiveMeeting = !!effectiveResult || isCompleted;
 
+    const lastSyncedBackendResultRef = useRef<Record<string, MeetingResult | null>>({});
+
     // Save completed uploads to meeting archive and synchronize newly computed backend results
     useEffect(() => {
-        const dataToSync = result ?? effectiveResult;
-        if (isCompleted && taskId && dataToSync) {
-            setLocalResult((prev) => ({
-                ...dataToSync,
-                speaker_mappings: prev?.speaker_mappings || dataToSync.speaker_mappings,
-                speaker_photos: prev?.speaker_photos || dataToSync.speaker_photos,
-            }));
+        if (!isCompleted || !taskId || !result) return;
 
-            const realDuration =
-                meetingMeta.duration && meetingMeta.duration !== "Calculating..."
-                    ? meetingMeta.duration
-                    : computeDurationFromMeeting(dataToSync);
+        // Prevent infinite re-render loops: only sync if this exact backend result hasn't been synced yet
+        if (lastSyncedBackendResultRef.current[taskId] === result) return;
+        lastSyncedBackendResultRef.current[taskId] = result;
 
-            setMeetings((prev) => {
-                const existing = prev[taskId];
-                const updatedMeeting: StoredMeeting = {
-                    id: taskId,
-                    title: existing?.title || meetingMeta.title || "Uploaded Meeting",
-                    date: existing?.date || meetingMeta.date || "Today",
-                    duration: realDuration,
-                    status: "Completed",
-                    result: {
-                        ...dataToSync,
-                        speaker_mappings: existing?.result?.speaker_mappings || dataToSync.speaker_mappings,
-                        speaker_photos: existing?.result?.speaker_photos || dataToSync.speaker_photos,
-                    },
-                };
-                const updated = { ...prev, [taskId]: updatedMeeting };
-                try {
-                    localStorage.setItem("agenticmeet_saved_meetings", JSON.stringify(updated));
-                } catch (err) {
-                    console.warn("Failed to persist updated meeting:", err);
-                }
-                return updated;
-            });
+        setLocalResult((prev) => ({
+            ...result,
+            speaker_mappings: prev?.speaker_mappings || result.speaker_mappings,
+            speaker_photos: prev?.speaker_photos || result.speaker_photos,
+        }));
 
-            if (meetingMeta.duration === "Calculating..." || !meetingMeta.duration) {
-                setMeetingMeta((prev) => ({ ...prev, duration: realDuration }));
+        const realDuration =
+            meetingMeta.duration && meetingMeta.duration !== "Calculating..."
+                ? meetingMeta.duration
+                : computeDurationFromMeeting(result);
+
+        setMeetings((prev) => {
+            const existing = prev[taskId];
+            const updatedMeeting: StoredMeeting = {
+                id: taskId,
+                title: existing?.title || meetingMeta.title || "Uploaded Meeting",
+                date: existing?.date || meetingMeta.date || "Today",
+                duration: realDuration,
+                status: "Completed",
+                result: {
+                    ...result,
+                    speaker_mappings: existing?.result?.speaker_mappings || result.speaker_mappings,
+                    speaker_photos: existing?.result?.speaker_photos || result.speaker_photos,
+                },
+            };
+            const updated = { ...prev, [taskId]: updatedMeeting };
+            try {
+                localStorage.setItem("agenticmeet_saved_meetings", JSON.stringify(updated));
+            } catch (err) {
+                console.warn("Failed to persist updated meeting:", err);
             }
+            return updated;
+        });
+
+        if (meetingMeta.duration === "Calculating..." || !meetingMeta.duration) {
+            setMeetingMeta((prev) => ({ ...prev, duration: realDuration }));
         }
-    }, [isCompleted, taskId, effectiveResult, meetings, meetingMeta.title, meetingMeta.date, meetingMeta.duration]);
+    }, [isCompleted, taskId, result, meetingMeta.title, meetingMeta.date, meetingMeta.duration]);
 
     // Keep active meeting duration calculated when effectiveResult arrives
     useEffect(() => {

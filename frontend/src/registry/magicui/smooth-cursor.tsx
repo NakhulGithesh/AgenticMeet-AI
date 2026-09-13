@@ -105,6 +105,14 @@ export function SmoothCursor({
     const accumulatedRotation = useRef(0);
     const [isEnabled, setIsEnabled] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
+    const isVisibleRef = useRef(false);
+
+    const setVisibleState = (visible: boolean) => {
+        if (isVisibleRef.current !== visible) {
+            isVisibleRef.current = visible;
+            setIsVisible(visible);
+        }
+    };
 
     const cursorX = useSpring(0, springConfig);
     const cursorY = useSpring(0, springConfig);
@@ -132,7 +140,7 @@ export function SmoothCursor({
             setIsEnabled(nextIsEnabled);
 
             if (!nextIsEnabled) {
-                setIsVisible(false);
+                setVisibleState(false);
                 document.body.classList.remove("has-smooth-cursor");
             }
         };
@@ -187,9 +195,9 @@ export function SmoothCursor({
             }
 
             if (isTextInput(e.target)) {
-                setIsVisible(false);
+                setVisibleState(false);
             } else {
-                setIsVisible(true);
+                setVisibleState(true);
             }
 
             const currentPos = { x: e.clientX, y: e.clientY };
@@ -249,11 +257,11 @@ export function SmoothCursor({
         };
 
         const handleMouseLeave = () => {
-            setIsVisible(false);
+            setVisibleState(false);
         };
 
         const handleMouseEnter = () => {
-            setIsVisible(true);
+            setVisibleState(true);
         };
 
         document.body.classList.add("has-smooth-cursor");

@@ -118,6 +118,19 @@ export default function PlaybackDrawer({
 
     // Media element reference (shared for both video and audio)
     const mediaRef = useRef<HTMLMediaElement | null>(null);
+    const setMediaRef = useCallback((el: HTMLMediaElement | null) => {
+        mediaRef.current = el;
+    }, []);
+
+    const lastTimeUpdateRef = useRef<number>(0);
+    const handleTimeUpdate = useCallback((e: React.SyntheticEvent<HTMLMediaElement>) => {
+        const el = e.currentTarget;
+        const now = performance.now();
+        if (now - lastTimeUpdateRef.current >= 150) {
+            lastTimeUpdateRef.current = now;
+            setCurrentTime(el.currentTime);
+        }
+    }, []);
 
     // Playback state
     const [isPlaying, setIsPlaying] = useState(false);
@@ -519,17 +532,12 @@ export default function PlaybackDrawer({
                         {isVideo ? (
                             <div className="relative aspect-video rounded-2xl overflow-hidden bg-black border border-[var(--border-soft)] dark:border-[#2D2A4A] shadow-md group">
                                 <video
-                                    ref={(el) => {
-                                        mediaRef.current = el;
-                                    }}
+                                    ref={setMediaRef}
                                     src={effectiveVideoUrl || mediaUrl}
                                     playsInline
                                     preload="metadata"
                                     onClick={togglePlay}
-                                    onTimeUpdate={(e) => {
-                                        const el = e.currentTarget;
-                                        setCurrentTime(el.currentTime);
-                                    }}
+                                    onTimeUpdate={handleTimeUpdate}
                                     onLoadedMetadata={(e) => {
                                         const el = e.currentTarget;
                                         if (el.duration && !isNaN(el.duration) && isFinite(el.duration)) {
@@ -577,14 +585,9 @@ export default function PlaybackDrawer({
                             <div className="relative rounded-2xl p-5 bg-gradient-to-br from-[#F5F2FF] via-[#F8F5FF] to-[#EDE8FF] dark:from-[#211B3D] dark:via-[#1B1733] dark:to-[#141126] border border-[#E4DCFF] dark:border-[#322A5A] shadow-sm overflow-hidden">
                                 {/* Hidden Audio Element */}
                                 <audio
-                                    ref={(el) => {
-                                        mediaRef.current = el;
-                                    }}
+                                    ref={setMediaRef}
                                     src={effectiveAudioUrl}
-                                    onTimeUpdate={(e) => {
-                                        const el = e.currentTarget;
-                                        setCurrentTime(el.currentTime);
-                                    }}
+                                    onTimeUpdate={handleTimeUpdate}
                                     onLoadedMetadata={(e) => {
                                         const el = e.currentTarget;
                                         if (el.duration && !isNaN(el.duration) && isFinite(el.duration)) {
