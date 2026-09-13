@@ -1,6 +1,6 @@
 """
 MultiLanguageTranslator — High-performance speaker-preserving translation engine.
-Uses direct concurrent Google Translate requests with ThreadPoolExecutor for sub-second responses.
+Uses chunked multi-line batching and multi-tier translation fallbacks.
 """
 import urllib.request
 import urllib.parse
@@ -23,24 +23,57 @@ class MultiLanguageTranslator:
         }
         self.reverse_language_codes = {v: k for k, v in self.language_codes.items()}
 
-    def _translate_single(self, text: str, target_code: str) -> str:
-        """Translate a single string using Google's direct web service endpoint."""
+    def _translate_query(self, text: str, target_code: str) -> str:
+        """Translate a string with resilient multi-tier fallback."""
         if not text or not text.strip():
             return text
-        try:
-            url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_code}&dt=t&q={urllib.parse.quote(text)}"
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"})
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                return "".join([item[0] for item in data[0] if item and item[0]])
-        except Exception:
-            # Fallback to googletrans if available
+
+        # 1. Try Google web endpoints (dict-chrome-ex, webapp)
+        for client in ["dict-chrome-ex", "webapp"]:
             try:
-                from googletrans import Translator
-                t = Translator()
-                return t.translate(text, dest=target_code).text
+                url = f"https://translate.googleapis.com/translate_a/single?client={client}&sl=auto&tl={target_code}&dt=t&q={urllib.parse.quote(text)}"
+                req = urllib.request.Request(
+                    url,
+                    headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
+                )
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    res = "".join([item[0] for item in data[0] if item and item[0]])
+                    if res and res.strip():
+                        return res
             except Exception:
-                return text
+                continue
+
+        # 2. Try googletrans
+        try:
+            from googletrans import Translator
+            t = Translator()
+            res = t.translate(text, dest=target_code)
+            if res and res.text and res.text.strip():
+                return res.text
+        except Exception:
+            pass
+
+        # 3. Try MyMemory API
+        try:
+            url = f"https://api.mymemory.translated.net/get?q={urllib.parse.quote(text[:500])}&langpair=en|{target_code}"
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                res = data.get("responseData", {}).get("translatedText")
+                if res and res.strip():
+                    return res
+        except Exception:
+            pass
+
+        return text
+
+    def _translate_single(self, text: str, target_code: str) -> str:
+        """Translate a single string."""
+        return self._translate_query(text, target_code)
 
     def detect_language(self, text: str) -> str:
         """Detect the language of the input text."""
@@ -67,7 +100,7 @@ class MultiLanguageTranslator:
     def batch_translate(self, texts: List[str], target_language: str) -> List[str]:
         """Translate multiple texts concurrently."""
         target_code = self.language_codes.get(target_language, 'en')
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
             return list(executor.map(lambda t: self._translate_single(t, target_code), texts))
 
     def translate_with_speaker_preservation(self, transcript: str, target_language: str) -> str:
@@ -90,10 +123,26 @@ class MultiLanguageTranslator:
             else:
                 parsed.append(('', line))
 
-        with ThreadPoolExecutor(max_workers=12) as executor:
-            translated_dialogues = list(
-                executor.map(lambda it: self._translate_single(it[1], target_code), parsed)
-            )
+        # Batch translate in chunks of 12 lines using delimiter
+        chunk_size = 12
+        translated_dialogues = []
+        delim = " ||| "
+
+        for i in range(0, len(parsed), chunk_size):
+            chunk = [p[1] for p in parsed[i:i + chunk_size]]
+            joined = delim.join(chunk)
+            translated_joined = self._translate_query(joined, target_code)
+
+            parts = [p.strip() for p in translated_joined.split("|||")]
+            if len(parts) == len(chunk):
+                translated_dialogues.extend(parts)
+            else:
+                # Delimiter split mismatch: translate individually with light concurrency
+                with ThreadPoolExecutor(max_workers=4) as executor:
+                    fallback_parts = list(
+                        executor.map(lambda txt: self._translate_single(txt, target_code), chunk)
+                    )
+                translated_dialogues.extend(fallback_parts)
 
         out = []
         for i, (prefix, orig_dialogue) in enumerate(parsed):

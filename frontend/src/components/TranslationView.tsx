@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Globe, ArrowRight, Loader2, Copy, Check } from "lucide-react";
 import { translateTranscript } from "@/lib/api";
 import { ShimmerButton } from "@/registry/magicui/shimmer-button";
@@ -59,6 +59,12 @@ export default function TranslationView({
             }, 300);
         }
     };
+
+    useEffect(() => {
+        if (taskId && !taskId.startsWith("meeting-") && !translatedText && !loading) {
+            handleTranslate(selectedLanguage);
+        }
+    }, [taskId]);
 
     const handleCopy = () => {
         if (!translatedText) return;

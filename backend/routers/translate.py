@@ -27,20 +27,24 @@ async def translate_transcript(task_id: str, body: TranslationRequest):
     if body.language == "English":
         return {"language": "English", "translated_transcript": transcript}
 
-    # Check cache first
+    # Check cache first (only return if genuine translation)
     translations = task.result.get("translations", {})
-    if body.language in translations:
-        return {"language": body.language, "translated_transcript": translations[body.language]}
+    cached = translations.get(body.language)
+    if cached and not cached.startswith(f"[{body.language} Translation unavailable"):
+        if body.language != "Hindi" or any("\u0900" <= ch <= "\u097f" for ch in cached):
+            return {"language": body.language, "translated_transcript": cached}
 
     try:
         from _translator import MultiLanguageTranslator
         translator = MultiLanguageTranslator()
         translated = translator.translate_with_speaker_preservation(transcript, body.language)
+
+        # Cache only valid successful translations
+        if translated and not translated.startswith(f"[{body.language} Translation unavailable"):
+            if body.language != "Hindi" or any("\u0900" <= ch <= "\u097f" for ch in translated):
+                translations[body.language] = translated
+                task_manager.update_task(task_id, result={"translations": translations})
     except Exception as e:
         translated = f"[{body.language} Translation unavailable: {str(e)}]\n\n" + transcript
-
-    # Cache translation
-    translations[body.language] = translated
-    task_manager.update_task(task_id, result={"translations": translations})
 
     return {"language": body.language, "translated_transcript": translated}
